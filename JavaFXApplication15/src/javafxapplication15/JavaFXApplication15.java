@@ -154,3 +154,130 @@ public class Main extends Application {
             ladders[i].setI2(d[i][2]);
             ladders[i].setJ2(d[i][3]);
         }
+        for (int i = 0; i < nplayers; ++i) {
+            HBox controlSet = new HBox(20);
+            controlSet.setAlignment(Pos.TOP_CENTER);
+            controls[i] = new MButton(i);
+            controls[i].setText("P".concat(String.valueOf(i + 1)));
+            players[i] = new Player(board);
+            players[i].setController(controls[i]);
+            controls[i].setDisable(!(i == 0));
+            controls[i].setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent ae) {
+                    MButton mb = (MButton) ae.getSource();
+                    int in = mb.getPlayerIndex();
+                    if (!players[in].isLocked()) {
+                        players[in].rollDice();
+                        dice.setShow(true);
+                        dice.update(players[in].getDiceNumber());
+                        if (players[in].getLaststep() + 1 >= 95) {
+                            switch (players[in].getLaststep() + players[in].getDiceNumber() + 1) {
+                                case 101:
+                                    players[in].reachedEnd(true);
+                                    if (players[in].getLaststep() == 99) {
+                                        sprites[in].setFill(Color.rgb(0, 0, 0, 0.0));
+                                        controls[in].setDisable(true);
+                                        indicator[in].setProgress(100 / 100);
+                                    }
+                                    move(players[in].getLaststep(), players[in].getLaststep() + players[in].getDiceNumber() - 1, in);
+                                    break;
+                                case 100:
+                                case 99:
+                                case 98:
+                                case 97:
+                                case 96:
+                                case 95:
+                                    move(players[in].getLaststep(), players[in].getLaststep() + players[in].getDiceNumber(), in);
+                                    players[in].setLaststep(players[in].getLaststep() + players[in].getDiceNumber());
+                                    break;
+                                default:
+                                    if (players[in].hasReachedEnd() == false) {
+                                    }
+                                    break;
+                            }
+
+                        } else {
+                            move(players[in].getLaststep(), players[in].getLaststep() + players[in].getDiceNumber(), in);
+                            players[in].setLaststep(players[in].getLaststep() + players[in].getDiceNumber());
+                        }
+
+                    }
+                    if (players[in].isLocked()) {
+                        players[in].rollDice();
+                        dice.setShow(true);
+                        dice.update(players[in].getDiceNumber());
+                        if (players[in].getDiceNumber() == 6 || players[in].getDiceNumber() == 1) {
+                            players[in].setLaststep(0);
+                            players[in].unlock();
+                            sprites[in].setFill(colors[in]);
+                            sprites[in].setCenterX(board.box[0][0].getCenterX());
+                            sprites[in].setCenterY(board.box[0][0].getCenterY());
+                        }
+                    }
+                    if (in == controls.length - 1) {
+                        controls[0].setDisable(false);
+                        players[0].controller.requestFocus();
+                        controls[in].setDisable(true);
+                    } else {
+                        controls[in + 1].setDisable(false);
+                        controls[in].setDisable(true);
+                    }
+                }
+            });
+            sprites[i] = new Circle();
+            sprites[i].setRadius(height / 30);
+            sprites[i].setFill(Color.rgb(0, 0, 0, 0.0));
+            DropShadow innerShadow = new DropShadow(3, Color.BLACK);
+            innerShadow.setInput(new InnerShadow(2, Color.BLACK));
+            sprites[i].setEffect(innerShadow);
+            sprites[i].setCenterX(board.box[0][0].getCenterX());
+            sprites[i].setCenterY(board.box[0][0].getCenterY());
+            playerColor[i] = new Circle();
+            playerColor[i].setRadius(height / 40);
+            playerColor[i].setFill(colors[i]);
+            indicator[i] = new ProgressIndicator(0);
+            indicator[i].setPrefSize(50, 50);
+            controls[i].setPrefSize(height / 20 + 10, height / 20);
+            VBox indicatorContainer = new VBox();
+            indicatorContainer.setAlignment(Pos.TOP_LEFT);
+            indicatorContainer.getChildren().add(indicator[i]);
+            controlSet.getChildren().addAll(controls[i], playerColor[i], indicatorContainer);
+            controlSet.getStyleClass().add("controls");
+            primaryControlsBox.getChildren().add(controlSet);
+            board.getChildren().add(sprites[i]);
+            XYChart.Series<Number, Number> series = new XYChart.Series<Number, Number>();
+            series.setName("P".concat(Integer.toString(i + 1)));
+        }
+        controlsBox.getChildren().add(primaryControlsBox);
+        leftBorderPane.setTop(controlsBox);
+        Button reset = new Button("Reset");
+        reset.setMinWidth(300);
+        reset.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent ae) {
+                for (int i = 0; i < nplayers; ++i) {
+                    players[i].controller.setDisable(!(i == 0));
+                    Timeline timeline = new Timeline();
+                    Color cl = (Color) sprites[i].getFill();
+                    KeyValue value1 = new KeyValue(sprites[i].fillProperty(), Color.color(cl.getRed(), cl.getGreen(), cl.getBlue(), 0.0));
+                    KeyValue value2 = new KeyValue(indicator[i].progressProperty(), 0d);
+                    KeyFrame frame = new KeyFrame(Duration.seconds(1), value1, value2);
+                    timeline.getKeyFrames().add(frame);
+                    PathTransition pt = new PathTransition();
+                    Path path = new Path();
+                    path.getElements().add(new MoveTo(board.box[players[i].getI()][players[i].getJ()].getCenterX(), board.box[players[i].getI()][players[i].getJ()].getCenterY()));
+                    path.getElements().add(new LineTo(board.box[0][0].getCenterX(), board.box[0][0].getCenterY()));
+                    pt.setPath(path);
+                    pt.setNode(sprites[i]);
+                    pt.setDuration(Duration.seconds(1));
+                    pt.play();
+                    timeline.play();
+                    players[i].reset();
+                }
+                dice.setShow(false);
+            }
+        });
+        reset.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 10));
+        reset.setId("reset");
+        resetContainer.getChildren().add(reset);
+        leftBorderPane.setBottom(resetContainer);
+        centralBorderPane.setCenter(board);
