@@ -281,3 +281,157 @@ public class Main extends Application {
         resetContainer.getChildren().add(reset);
         leftBorderPane.setBottom(resetContainer);
         centralBorderPane.setCenter(board);
+        board.setId("board");
+        dice.setId("dice");
+        AnchorPane vb = new AnchorPane();
+        vb.setPadding(new Insets(0, 0, 40, 0));
+        Label circle = new Label("X");
+        circle.setId("floatinglabel");
+        circle.setMinSize(50, 50);
+        circle.setTextAlignment(TextAlignment.CENTER);
+        circle.setAlignment(Pos.CENTER);
+        circle.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 30));
+        DropShadow dp = new DropShadow();
+        dp.setBlurType(BlurType.THREE_PASS_BOX);
+        dp.setRadius(10);
+        circle.setEffect(dp);
+        vb.getChildren().addAll(titleBox, circle);
+        rootPane.setTop(vb);
+        rootPane.setLeft(leftBorderPane);
+        rootPane.setCenter(centralBorderPane);
+        root.getChildren().add(rootPane);
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(Main.class.getResource("mystyle.css").toExternalForm());
+        primaryStage.setTitle("Snakes And Ladders by Kel 7");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        titleBox.setMinWidth(rootPane.getWidth());
+        circle.setTranslateX(rootPane.getWidth() - 50 - 20);
+        circle.setTranslateY(titleBox.getHeight() - 25);
+        circle.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            public void handle(MouseEvent me) {
+                primaryStage.close();
+            }
+        });
+    }
+
+    public void move(int from, int to, int index) {
+        Path path = new Path();
+        String s;
+        if (String.valueOf(from).length() == 1) {
+            s = "0".concat(String.valueOf(from));
+        } else {
+            s = String.valueOf(from);
+        }
+        MoveTo m = new MoveTo();
+        int dx = Integer.parseInt(Character.toString(s.charAt(0)));
+        int dy = Integer.parseInt(Character.toString(s.charAt(1)));
+        m.setX(board.box[dx][dy].getCenterX());
+        m.setY(board.box[dx][dy].getCenterY());
+        path.getElements().add(m);
+        for (int i = from + 1; i <= to; ++i) {
+            if (Integer.toString(i).length() == 1) {
+                s = "0".concat(Integer.toString(i));
+            } else {
+                s = Integer.toString(i);
+            }
+            dx = Integer.parseInt(Character.toString(s.charAt(0)));
+            dy = Integer.parseInt(Character.toString(s.charAt(1)));
+            LineTo l = new LineTo();
+            l.setX(board.box[dx][dy].getCenterX());
+            l.setY(board.box[dx][dy].getCenterY());
+            path.getElements().add(l);
+        }
+        final int dxx = dx;
+        final int dyy = dy;
+        PathTransition pt = new PathTransition();
+        pt.setDuration(Duration.seconds((to - from) <= 2 ? 1 : 2));
+        pt.setCycleCount(1);
+        pt.setPath(path);
+        pt.setNode(sprites[index]);
+        pt.setOnFinished(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent ae) {
+                players[index].setI(dxx);
+                players[index].setJ(dyy);
+                Timeline timeline = new Timeline();
+                KeyValue value = new KeyValue(indicator[index].progressProperty(), players[index].getLaststep() / 100d);
+                KeyFrame frame = new KeyFrame(Duration.seconds(1), value);
+                timeline.getKeyFrames().add(frame);
+                timeline.setCycleCount(1);
+                timeline.setAutoReverse(false);
+                if (players[index].hasReachedEnd() == true) {
+                    sprites[index].setFill(Color.rgb(0, 0, 0, 0.0));
+                    controls[index].setDisable(true);
+                    indicator[index].setProgress(100 / 100);
+                }
+                if (players[index].hasReachedEnd() == false) {
+                    timeline.play();
+                }
+                for (int i = 0; i < snakes.length; ++i) {
+                    if (snakes[i].getI1() == players[index].getI() && snakes[i].getJ1() == players[index].getJ()) {
+                        moveOnSnake(snakes[i], index);
+                        break;
+                    }
+                }
+                for (int i = 0; i < ladders.length; ++i) {
+                    if (ladders[i].getI2() == players[index].getI() && ladders[i].getJ2() == players[index].getJ()) {
+                        moveOnLadder(ladders[i], index);
+                        break;
+                    }
+                }
+
+            }
+        });
+        pt.play();
+    }
+
+    public void moveOnSnake(Snake snake, int index) {
+        PathTransition pt = new PathTransition();
+        pt.setDuration(Duration.seconds(2));
+        pt.setCycleCount(1);
+        pt.setPath(snake.getPath());
+        pt.setNode(sprites[index]);
+        pt.setOnFinished(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent ae) {
+                players[index].setI(snake.getI2());
+                players[index].setJ(snake.getJ2());
+                players[index].setLaststep(Integer.parseInt(String.valueOf(snake.getI2()).concat(String.valueOf(snake.getJ2()))));
+                Timeline timeline = new Timeline();
+                KeyValue value = new KeyValue(indicator[index].progressProperty(), players[index].getLaststep() / 100d);
+                KeyFrame frame = new KeyFrame(Duration.seconds(1), value);
+                timeline.getKeyFrames().add(frame);
+                timeline.setCycleCount(1);
+                timeline.setAutoReverse(false);
+                timeline.play();
+            }
+        });
+        pt.play();
+    }
+
+    public void moveOnLadder(Ladder ladder, int index) {
+        PathTransition pt = new PathTransition();
+        pt.setDuration(Duration.seconds(2));
+        pt.setCycleCount(1);
+        pt.setPath(ladder.getPath());
+        pt.setNode(sprites[index]);
+        pt.setOnFinished(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent ae) {
+                players[index].setI(ladder.getI1());
+                players[index].setJ(ladder.getJ1());
+                players[index].setLaststep(Integer.parseInt(String.valueOf(ladder.getI1()).concat(String.valueOf(ladder.getJ1()))));
+                Timeline timeline = new Timeline();
+                KeyValue value = new KeyValue(indicator[index].progressProperty(), players[index].getLaststep() / 100d);
+                KeyFrame frame = new KeyFrame(Duration.seconds(1), value);
+                timeline.getKeyFrames().add(frame);
+                timeline.setCycleCount(1);
+                timeline.setAutoReverse(false);
+                timeline.play();
+            }
+        });
+        pt.play();
+    }
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+}
