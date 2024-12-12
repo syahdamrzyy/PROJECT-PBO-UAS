@@ -1,13 +1,18 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package javafxapplication15;
+import javafx.scene.control.Button;
 
 /**
  *
- * @author Syahdamzhaa
+ * @author Kel 7
  */
-public class MButton {
-    
+public class MButton extends Button {
+
+    int position = 0;
+
+    public MButton(int i) {
+        position = i;
+    }
+
+    public int getPlayerIndex() {
+        return position;
+    }
 }
