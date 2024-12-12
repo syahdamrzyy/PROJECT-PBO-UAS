@@ -35,3 +35,122 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+public class Main extends Application {
+
+    double width = 1000, height = 550;
+    int nsnake = 5, nladder = 5, nplayers = 1;
+    int n[][] = new int[nsnake][4], d[][] = new int[nladder][4];
+    Board board = new Board(width, height);
+    Dice dice = new Dice(100, 100);
+    Snake snakes[] = new Snake[nsnake];
+    Ladder ladders[] = new Ladder[nladder];
+    Player players[] = new Player[1];
+    Circle sprites[], playerColor[];
+    MButton controls[];
+    ProgressIndicator indicator[];
+    Color colors[] = new Color[8];
+
+    @Override
+    public void start(Stage primaryStage) {
+        
+
+        colors[0] = Color.RED;
+        colors[1] = Color.ORANGE;
+        colors[2] = Color.GREEN;
+        colors[3] = Color.rgb(30, 170, 255);
+        colors[4] = Color.INDIGO;
+        colors[5] = Color.VIOLET;
+        colors[6] = Color.DARKRED;
+        colors[7] = Color.GREY;
+        nplayers = 4;
+        players = new Player[nplayers];
+        sprites = new Circle[nplayers];
+        playerColor = new Circle[nplayers];
+        controls = new MButton[nplayers];
+        indicator = new ProgressIndicator[nplayers];
+        StackPane root = new StackPane();
+        BorderPane rootPane = new BorderPane();
+        BorderPane leftBorderPane = new BorderPane();
+        BorderPane centralBorderPane = new BorderPane();
+        centralBorderPane.setPadding(new Insets(0, 10, 20, 10));
+        HBox titleBox = new HBox();
+        titleBox.setId("titlebox");
+        titleBox.setAlignment(Pos.TOP_CENTER);
+        titleBox.setPadding(new Insets(10));
+        HBox controlsBox = new HBox();
+        controlsBox.setAlignment(Pos.CENTER_LEFT);
+        controlsBox.setPadding(new Insets(0, 0, 0, 10));
+        VBox primaryControlsBox = new VBox(10);
+        primaryControlsBox.setAlignment(Pos.CENTER);
+        HBox resetContainer = new HBox();
+        resetContainer.setPadding(new Insets(0, 10, 20, 10));
+        resetContainer.setAlignment(Pos.CENTER_LEFT);
+        VBox graphContainer = new VBox();
+        graphContainer.setAlignment(Pos.CENTER_LEFT);
+        dice.setTranslateX(115); 
+        graphContainer.getChildren().add(dice);
+        leftBorderPane.setCenter(graphContainer);
+        Text title = new Text("Snakes And Ladders by Kel 7");
+        title.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 35));
+        title.setId("title");
+        titleBox.getChildren().add(title);
+        
+        n[0][0] = 9;
+        n[0][1] = 8;
+        n[0][2] = 0;
+        n[0][3] = 7;
+        n[1][0] = 9;
+        n[1][1] = 4;
+        n[1][2] = 5;
+        n[1][3] = 1;
+        n[2][0] = 8;
+        n[2][1] = 9;
+        n[2][2] = 2;
+        n[2][3] = 7;
+        n[3][0] = 5;
+        n[3][1] = 9;
+        n[3][2] = 0;
+        n[3][3] = 2;
+        n[4][0] = 7;
+        n[4][1] = 3;
+        n[4][2] = 4;
+        n[4][3] = 2;
+        for (int i = 0; i < snakes.length; ++i) {
+            snakes[i] = new Snake(board.box[n[i][0]][n[i][1]], board.box[n[i][2]][n[i][3]], width / 20);
+            snakes[i].setColor(board.getRandomColor(Color.WHITE));
+            snakes[i].drawOn(board);
+            snakes[i].setI1(n[i][0]);
+            snakes[i].setJ1(n[i][1]);
+            snakes[i].setI2(n[i][2]);
+            snakes[i].setJ2(n[i][3]);
+        }
+        d[0][0] = 6;
+        d[0][1] = 1;
+        d[0][2] = 0;
+        d[0][3] = 1;
+        d[1][0] = 4;
+        d[1][1] = 4;
+        d[1][2] = 1;
+        d[1][3] = 6;
+        d[2][0] = 9;
+        d[2][1] = 1;
+        d[2][2] = 1;
+        d[2][3] = 0;
+        d[3][0] = 6;
+        d[3][1] = 7;
+        d[3][2] = 3;
+        d[3][3] = 2;
+        d[4][0] = 9;
+        d[4][1] = 6;
+        d[4][2] = 6;
+        d[4][3] = 4;
+        for (int i = 0; i < d.length; ++i) {
+            ladders[i] = new Ladder(board.box[d[i][0]][d[i][1]], board.box[d[i][2]][d[i][3]], width / 20);
+            ladders[i].setColor(board.getRandomColor(Color.WHITE));
+            ladders[i].drawOn(board);
+            ladders[i].setI1(d[i][0]);
+            ladders[i].setJ1(d[i][1]);
+            ladders[i].setI2(d[i][2]);
+            ladders[i].setJ2(d[i][3]);
+        }
