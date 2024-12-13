@@ -35,9 +35,18 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
+import javafx.application.Platform;
 
 public class Main extends Application {
-
+    private int currentPlayerIndex = 0;
+    private Button rollDiceButton;
+    private Media ladderSound;
+    private Media snakeSound;
+    private Media backgroundMusic;
+    private MediaPlayer backgroundMusicPlayer;
     double width = 1000, height = 550;
     int nsnake = 5, nladder = 5, nplayers = 1;
     int n[][] = new int[nsnake][4], d[][] = new int[nladder][4];
@@ -53,8 +62,39 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        try {
+            // untuk masukin musik
+            backgroundMusic = new Media(getClass().getResource("/sounds/Snake III JAVA game theme song.wav").toExternalForm());
+            backgroundMusicPlayer = new MediaPlayer(backgroundMusic);
+            
+            // ini agar musik berulang terus
+            backgroundMusicPlayer.setOnEndOfMedia(() -> {
+                backgroundMusicPlayer.seek(Duration.ZERO);
+            });
+            
+            // untuk vollume (0.0 - 1.0)
+            backgroundMusicPlayer.setVolume(0.5);
+            
+            // untuk memutar musik
+            backgroundMusicPlayer.play();
+        } catch (Exception e) {
+            System.out.println("Error loading background music: " + e.getMessage());
+        }
         
-
+        try {
+            // untuk memasukan musik
+            ladderSound = new Media(getClass().getResource("/sounds/ladderrr.wav").toExternalForm());
+        } catch (Exception e) {
+            System.out.println("Error loading ladder sound: " + e.getMessage());
+        }
+        
+        try {
+            //untuk memasukan musik
+            snakeSound = new Media(getClass().getResource("/sounds/Snake attack sound  Snake bite sound effect.wav").toExternalForm());
+        } catch (Exception e) {
+            System.out.println("Error loading ladder sound: " + e.getMessage());
+        }
+        
         colors[0] = Color.RED;
         colors[1] = Color.ORANGE;
         colors[2] = Color.GREEN;
@@ -83,19 +123,24 @@ public class Main extends Application {
         controlsBox.setPadding(new Insets(0, 0, 0, 10));
         VBox primaryControlsBox = new VBox(10);
         primaryControlsBox.setAlignment(Pos.CENTER);
+        rollDiceButton = new Button("Roll Dice");
+        rollDiceButton.setPrefSize(200, 50);
+        rollDiceButton.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        Label currentPlayerLabel = new Label("Current Player: P1");
+        currentPlayerLabel.setStyle("-fx-font-size: 16px;");
         HBox resetContainer = new HBox();
         resetContainer.setPadding(new Insets(0, 10, 20, 10));
         resetContainer.setAlignment(Pos.CENTER_LEFT);
         VBox graphContainer = new VBox();
         graphContainer.setAlignment(Pos.CENTER_LEFT);
-        dice.setTranslateX(115); 
+        dice.setTranslateX(115); // Shift the dice 50 pixels to the right
         graphContainer.getChildren().add(dice);
         leftBorderPane.setCenter(graphContainer);
         Text title = new Text("Snakes And Ladders by Kel 7");
         title.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 35));
         title.setId("title");
         titleBox.getChildren().add(title);
-        
+        ////////////////Drawing Snakes////////////////////////
         n[0][0] = 9;
         n[0][1] = 8;
         n[0][2] = 0;
@@ -125,6 +170,7 @@ public class Main extends Application {
             snakes[i].setI2(n[i][2]);
             snakes[i].setJ2(n[i][3]);
         }
+        ////////////////////Drawing Ladders/////////////////////////////
         d[0][0] = 6;
         d[0][1] = 1;
         d[0][2] = 0;
@@ -154,6 +200,7 @@ public class Main extends Application {
             ladders[i].setI2(d[i][2]);
             ladders[i].setJ2(d[i][3]);
         }
+        ////////////////////////////Setting Controls/////////////////////////////////////
         for (int i = 0; i < nplayers; ++i) {
             HBox controlSet = new HBox(20);
             controlSet.setAlignment(Pos.TOP_CENTER);
@@ -219,8 +266,9 @@ public class Main extends Application {
                         players[0].controller.requestFocus();
                         controls[in].setDisable(true);
                     } else {
+                        //if(!players[in+1].hasReachedEnd()){
                         controls[in + 1].setDisable(false);
-                        controls[in].setDisable(true);
+                        controls[in].setDisable(true);//}
                     }
                 }
             });
@@ -250,6 +298,7 @@ public class Main extends Application {
         }
         controlsBox.getChildren().add(primaryControlsBox);
         leftBorderPane.setTop(controlsBox);
+        
         Button reset = new Button("Reset");
         reset.setMinWidth(300);
         reset.setOnAction(new EventHandler<ActionEvent>() {
@@ -314,6 +363,31 @@ public class Main extends Application {
             }
         });
     }
+        private void playLadderSound() {
+        try {
+            if (ladderSound != null) {
+                // Buat media player baru setiap kali ingin memainkan suara
+                MediaPlayer ladderSoundPlayer = new MediaPlayer(ladderSound);
+                ladderSoundPlayer.setVolume(0.5); // Atur volume
+                ladderSoundPlayer.play();
+            }
+        } catch (Exception e) {
+            System.out.println("Error playing ladder sound: " + e.getMessage());
+        }
+    }
+        private void playSnakeSound() {
+        try {
+            if (snakeSound != null) {
+                // Buat media player baru setiap kali ingin memainkan suara
+                MediaPlayer snakeSoundPlayer = new MediaPlayer(snakeSound);
+                snakeSoundPlayer.setVolume(0.5); // Atur volume
+                snakeSoundPlayer.play();
+            }
+        } catch (Exception e) {
+            System.out.println("Error playing ladder sound: " + e.getMessage());
+        }
+    }
+
 
     public void move(int from, int to, int index) {
         Path path = new Path();
@@ -363,7 +437,10 @@ public class Main extends Application {
                     sprites[index].setFill(Color.rgb(0, 0, 0, 0.0));
                     controls[index].setDisable(true);
                     indicator[index].setProgress(100 / 100);
-                }
+                    Platform.exit();
+                }else {
+                timeline.play();
+            }
                 if (players[index].hasReachedEnd() == false) {
                     timeline.play();
                 }
@@ -386,6 +463,7 @@ public class Main extends Application {
     }
 
     public void moveOnSnake(Snake snake, int index) {
+        playSnakeSound();
         PathTransition pt = new PathTransition();
         pt.setDuration(Duration.seconds(2));
         pt.setCycleCount(1);
@@ -409,6 +487,7 @@ public class Main extends Application {
     }
 
     public void moveOnLadder(Ladder ladder, int index) {
+        playLadderSound();
         PathTransition pt = new PathTransition();
         pt.setDuration(Duration.seconds(2));
         pt.setCycleCount(1);
@@ -430,6 +509,15 @@ public class Main extends Application {
         });
         pt.play();
     }
+    @Override
+    public void stop() {
+        if (backgroundMusicPlayer != null) {
+            backgroundMusicPlayer.stop();
+        }
+    }
+    
+    
+
     public static void main(String[] args) {
         launch(args);
     }
