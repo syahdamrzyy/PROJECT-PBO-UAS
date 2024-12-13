@@ -1,10 +1,5 @@
 
 import java.util.Random;
-
-/**
- *
- * @author Naseem Ali
- */
 public class Player {
 
     MButton controller; 
