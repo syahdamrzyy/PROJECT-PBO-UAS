@@ -1,4 +1,3 @@
-
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -13,15 +12,11 @@ import javafx.scene.shape.Path;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 
-public class Snake {
-
-    Rectangle box1, box2;
-    double width;
-    Paint color = Color.WHITE;
-    Path path = new Path();
-    int i1, i2, j1, j2;
-
+public class Snake extends GameElement {
+    private Rectangle box1, box2;
+    private double width;
     public Snake(Rectangle box1, Rectangle box2, double width) {
+        super(0, 0, 0, 0); 
         this.box1 = box1;
         this.box2 = box2;
         this.width = width;
@@ -30,6 +25,7 @@ public class Snake {
         path.setStrokeWidth(width / 4);
     }
 
+    @Override
     public void drawOn(Board root) {
         double x1 = box1.getCenterX();
         double y1 = box1.getCenterY();
@@ -46,15 +42,25 @@ public class Snake {
         path.getElements().add(new MoveTo(p.get(0).getX(), p.get(0).getY()));
         Point p1, p2;
         for (int i = 1; i < p.size(); ++i) {
-            p1 = p.get(i - 1);
-            p2 = p.get(i);
-            if (x2 < x1) {
-                path.getElements().add(new CubicCurveTo(p1.getX(), p1.getY(), (p1.getX() + p2.getX()) / 2 + ((i % 2 == 0) ? -width : width), (p1.getY() + p2.getY()) / 2 - ((i % 2 == 1) ? -width : width), p2.getX(), p2.getY()));
-            } else {
-                path.getElements().add(new CubicCurveTo(p1.getX(), p1.getY(), (p1.getX() + p2.getX()) / 2 + ((i % 2 == 0) ? -width : width), (p1.getY() + p2.getY()) / 2 + ((i % 2 == 1) ? -width : width), p2.getX(), p2.getY()));
-            }
-        }
-        path.setStroke(color);
+    p1 = p.get(i - 1);
+    p2 = p.get(i);
+    if (x2 < x1) {
+        path.getElements().add(new CubicCurveTo(
+            p1.getX(), p1.getY(),
+            (p1.getX() + p2.getX()) / 2 + ((i % 2 == 0) ? -width : width),
+            (p1.getY() + p2.getY()) / 2 - ((i % 2 == 1) ? -width : width),
+            p2.getX(), p2.getY()
+        ));
+    } else {
+        path.getElements().add(new CubicCurveTo(
+            p1.getX(), p1.getY(),
+            (p1.getX() + p2.getX()) / 2 + ((i % 2 == 0) ? -width : width),
+            (p1.getY() + p2.getY()) / 2 + ((i % 2 == 1) ? -width : width),
+            p2.getX(), p2.getY()
+        ));
+    }
+}
+        path.setStroke(getColor());
         DropShadow drop = new DropShadow();
         drop.setRadius(width / 4);
         drop.setColor(Color.BLACK);
@@ -65,6 +71,7 @@ public class Snake {
         root.g.setFill(Color.RED);
         root.g.fillOval(getHead().getX() - wd / 2, getHead().getY() - wd / 2, wd, wd);
     }
+
     public Point getTail() {
         Point p = new Point();
         p.setLocation(box2.getCenterX(), box2.getCenterY());
@@ -78,15 +85,17 @@ public class Snake {
     }
 
     public void setColor(Color c) {
-        this.color = c;
+        super.setColor(c);
     }
 
+    @Override
     public Paint getColor() {
-        return color;
+        return super.getColor();
     }
 
+    @Override
     public Path getPath() {
-        return path;
+        return super.getPath();
     }
 
     public int getI1() {
@@ -120,6 +129,4 @@ public class Snake {
     public void setJ2(int j2) {
         this.j2 = j2;
     }
-
 }
-
